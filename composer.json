@@ -1,0 +1,37 @@
+{
+    "name": "clarkwinkelmann/flarum-ext-carving-contest",
+    "description": "Pumpkin carving contest",
+    "keywords": [
+        "flarum"
+    ],
+    "type": "flarum-extension",
+    "license": "MIT",
+    "require": {
+        "flarum/core": ">=0.1.0-beta.10 <0.1.0-beta.12"
+    },
+    "authors": [
+        {
+            "name": "Clark Winkelmann",
+            "email": "clark.winkelmann@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "ClarkWinkelmann\\CarvingContest\\": "src/"
+        }
+    },
+    "extra": {
+        "flarum-extension": {
+            "title": "Carving Contest",
+            "icon": {
+                "name": "fas fa-spider",
+                "backgroundColor": "#db5800",
+                "color": "#030303"
+            }
+        },
+        "flagrow": {
+            "discuss": "https://discuss.flarum.org/d/21828"
+        }
+    }
+}

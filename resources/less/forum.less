@@ -1,0 +1,83 @@
+.CarvingContestPumpkin {
+    margin: 0 auto;
+    width: 426px;
+    background: linear-gradient(270deg, #fbd60d, #f7ab11);
+    background-size: 400% 400%;
+    animation: PumpkinFire 10s ease infinite;
+    cursor: none;
+
+    canvas {
+        display: block;
+        width: 100%;
+    }
+}
+
+@keyframes PumpkinFire {
+    0% {
+        background-position: 0 50%
+    }
+    50% {
+        background-position: 100% 50%
+    }
+    100% {
+        background-position: 0 50%
+    }
+}
+
+.CarvingContestEntry {
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    width: 250px;
+    max-width: 100%;
+    background: white;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    margin: 10px;
+    padding: 15px;
+
+    .CarvingContestPumpkin {
+        cursor: auto;
+        width: 213px;
+    }
+
+    .CarvingContestEntry--name {
+        text-align: center;
+
+        &::before, &::after {
+            content: '"';
+        }
+    }
+
+    .Avatar {
+        .Avatar--size(24px);
+        margin: -2px 10px -2px 5px;
+    }
+
+    .CarvingContestEntry--delete {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: none;
+    }
+
+    &:hover .CarvingContestEntry--delete {
+        display: block;
+    }
+}
+
+.CarvingContestTools {
+    background: white;
+    margin: 0 auto;
+    width: 426px;
+    padding: 5px;
+    display: flex;
+
+    .Button, input {
+        flex-grow: 1;
+    }
+
+    .Button:not(:first-child) {
+        margin: 0 10px;
+    }
+}
