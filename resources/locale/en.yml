@@ -9,6 +9,7 @@ clarkwinkelmann-carving-contest:
             participate: Participate
             delete-confirmation: Do you really want to delete "{name}" by {username}?
             like: Like
+            already-liked: I like it
             unlike: Unlike
             refresh: Refresh
             load-more: Load more entries
@@ -17,6 +18,11 @@ clarkwinkelmann-carving-contest:
                 fewerLikes: Fewer likes
                 mostRecent: Recently posted
                 leastRecent: Least recent
+            likes:
+                you_text: => core.ref.you
+                others_link: => core.ref.some_others
+                liked_by_self_text: "{users} like this."
+                liked_by_text: "{users} likes this.|{users} like this."
 
         modal:
             title: Participate
@@ -25,6 +31,9 @@ clarkwinkelmann-carving-contest:
             tools:
                 circle: Circle
                 square: Square
+
+        likes_modal:
+            title: Users who liked this entry
 
     admin:
         permissions:

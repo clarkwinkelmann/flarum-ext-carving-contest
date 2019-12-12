@@ -11,6 +11,7 @@ import punctuateSeries from 'flarum/helpers/punctuateSeries';
 import extractText from 'flarum/utils/extractText';
 import ParticipateModal from './ParticipateModal';
 import PumpkinCanvas from './PumpkinCanvas';
+import EntryLikesModal from './EntryLikesModal';
 
 /* global m */
 
@@ -84,8 +85,23 @@ export default class ContestPage extends Page {
         const isLiked = app.session.user && likes && likes.some(user => user === app.session.user);
 
         return Button.component({
-            children: app.translator.trans(translationPrefix + (isLiked ? 'unlike' : 'like')),
-            className: 'Button Button--link',
+            children: isLiked ? [
+                m('span.already-liked', [
+                    icon('far fa-thumbs-up'),
+                    ' ',
+                    app.translator.trans(translationPrefix + 'already-liked'),
+                ]),
+                m('span.remove-like', [
+                    icon('far fa-thumbs-down'),
+                    ' ',
+                    app.translator.trans(translationPrefix + 'unlike'),
+                ])
+            ] : [
+                icon('far fa-thumbs-up'),
+                ' ',
+                app.translator.trans(translationPrefix + 'like'),
+            ],
+            className: 'Button Button--block' + (isLiked ? ' Button--primary Button-already-liked' : ''),
             onclick: () => {
                 entry.save({
                     isLiked: !isLiked,
@@ -138,12 +154,14 @@ export default class ContestPage extends Page {
                 href: '#',
                 onclick: e => {
                     e.preventDefault();
-                    app.modal.show(new PostLikesModal({post}));
+                    app.modal.show(new EntryLikesModal({
+                        entry,
+                    }));
                 },
             }, app.translator.transChoice('flarum-likes.forum.post.others_link', count, {count})));
         }
 
-        return m('.Post-likedBy', [
+        return m('.Entry-likedBy', [
             icon('far fa-thumbs-up'),
             app.translator.transChoice('flarum-likes.forum.post.liked_by' + (likes[0] === app.session.user ? '_self' : '') + '_text', names.length, {
                 count: names.length,
