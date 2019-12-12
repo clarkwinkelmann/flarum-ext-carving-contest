@@ -6,13 +6,11 @@ A [Flarum](https://flarum.org/) extension.
 
 You can restrict view, participation and vote to individual groups or all users.
 
-This is an example extension, so it's still missing some important features and performance can be improved.
-
-In particular, there's no limit to the number of submission per user. And no way to mass delete submissions either.
+Please note there is currently no limit to the number of submission per user. And no way to mass delete submissions either.
 
 Fell free to fork into your own extension !
 
-> This extension was written live on YouTube. Watch the video on the [Clark writes code channel](https://www.youtube.com/watch?v=2Z9t-K0kEm4). Support me on [Patreon](https://www.patreon.com/clark_writes_code)!
+> This extension was written live on YouTube. Watch the video on the Clark writes code channel: [part 1](https://www.youtube.com/watch?v=2Z9t-K0kEm4), [part 2](https://www.youtube.com/watch?v=LoO-DqD_GGM). Support me on [Patreon](https://www.patreon.com/clark_writes_code)!
 
 ## Install / Update
 
