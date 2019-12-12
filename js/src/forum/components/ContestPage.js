@@ -1,6 +1,8 @@
 import app from 'flarum/app';
 import Page from 'flarum/components/Page';
 import Button from 'flarum/components/Button';
+import LoadingIndicator from 'flarum/components/LoadingIndicator';
+import Dropdown from 'flarum/components/Dropdown';
 import humanTime from 'flarum/helpers/humanTime';
 import avatar from 'flarum/helpers/avatar';
 import username from 'flarum/helpers/username';
@@ -18,19 +20,59 @@ export default class ContestPage extends Page {
     init() {
         super.init();
 
-        this.refreshEntries();
+        this.loading = true;
+        this.moreResults = false;
+        this.entries = [];
+        this.sort = '-createdAt';
+
+        this.refresh();
     }
 
-    refreshEntries() {
+    loadResults(offset) {
+        const preloadedEntries = app.preloadedApiDocument();
+
+        if (preloadedEntries) {
+            return m.deferred().resolve(preloadedEntries).promise;
+        } else {
+            return app.store.find('carving-contest/entries', {
+                page: {
+                    offset,
+                },
+                sort: this.sort,
+            });
+        }
+    }
+
+    refresh() {
+        this.loading = true;
         this.entries = null;
 
-        app.request({
-            method: 'GET',
-            url: app.forum.attribute('apiUrl') + '/carving-contest/entries',
-        }).then(result => {
-            this.entries = app.store.pushPayload(result);
-            m.redraw();
-        });
+        return this.loadResults().then(
+            results => {
+                this.entries = [];
+                this.parseResults(results);
+            },
+            () => {
+                this.loading = false;
+                m.redraw();
+            }
+        );
+    }
+
+    loadMore() {
+        this.loading = true;
+
+        this.loadResults(this.entries.length)
+            .then(this.parseResults.bind(this));
+    }
+
+    parseResults(results) {
+        [].push.apply(this.entries, results);
+
+        this.loading = false;
+        this.moreResults = !!results.payload.links.next;
+
+        m.lazyRedraw();
     }
 
     likeButton(entry) {
@@ -115,6 +157,13 @@ export default class ContestPage extends Page {
             return m('.container', m('p', app.translator.trans(translationPrefix + 'loading')));
         }
 
+        const sortOptions = {
+            '-likesCount': app.translator.trans(translationPrefix + 'sort.mostLikes'),
+            'likesCount': app.translator.trans(translationPrefix + 'sort.fewerLikes'),
+            '-createdAt': app.translator.trans(translationPrefix + 'sort.mostRecent'),
+            'createdAt': app.translator.trans(translationPrefix + 'sort.leastRecent'),
+        };
+
         return m('.container', [
             m('h2', app.translator.trans(translationPrefix + 'title')),
             app.forum.attribute('carvingContestCanParticipate') ? Button.component({
@@ -123,12 +172,40 @@ export default class ContestPage extends Page {
                     app.modal.show(new ParticipateModal({
                         oncreate: () => {
                             app.modal.close();
-                            this.refreshEntries();
+                            this.refresh();
                         },
                     }));
                 },
                 children: app.translator.trans(translationPrefix + 'participate'),
             }) : null,
+            ' ',
+            Dropdown.component({
+                buttonClassName: 'Button',
+                label: sortOptions[this.sort],
+                children: Object.keys(sortOptions).map(value => {
+                    const label = sortOptions[value];
+                    const active = this.sort === value;
+
+                    return Button.component({
+                        children: label,
+                        icon: active ? 'fas fa-check' : true,
+                        onclick: () => {
+                            this.sort = value;
+                            this.refresh();
+                        },
+                        active,
+                    });
+                }),
+            }),
+            ' ',
+            Button.component({
+                icon: 'fas fa-sync',
+                className: 'Button',
+                children: app.translator.trans(translationPrefix + 'refresh'),
+                onclick: () => {
+                    this.refresh();
+                },
+            }),
             m('div', this.entries.map(entry => m('.CarvingContestEntry', {
                 key: entry.id(), // Without this, canvas are re-used, causing incorrect images to be shown when one is deleted
             }, [
@@ -163,6 +240,11 @@ export default class ContestPage extends Page {
                     this.whoLiked(entry),
                 ]),
             ]))),
+            this.loading ? LoadingIndicator.component() : (this.moreResults ? Button.component({
+                children: app.translator.trans(translationPrefix + 'load-more'),
+                className: 'Button',
+                onclick: this.loadMore.bind(this),
+            }) : null),
         ]);
     }
 }
