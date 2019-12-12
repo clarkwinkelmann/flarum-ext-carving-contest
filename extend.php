@@ -3,6 +3,7 @@
 namespace ClarkWinkelmann\CarvingContest;
 
 use Flarum\Extend;
+use Illuminate\Contracts\Events\Dispatcher;
 
 return [
     (new Extend\Frontend('forum'))
@@ -20,4 +21,8 @@ return [
         ->delete('/carving-contest/entries/{id:[0-9]+}', 'carving-contest.entries.delete', Controllers\EntryDeleteController::class),
 
     new Extenders\ForumAttributes(),
+
+    function (Dispatcher $dispatcher) {
+        $dispatcher->subscribe(Policies\EntryPolicy::class);
+    },
 ];

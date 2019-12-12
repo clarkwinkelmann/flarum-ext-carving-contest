@@ -76,7 +76,7 @@ export default class ContestPage extends Page {
     }
 
     likeButton(entry) {
-        if (!app.forum.attribute('carvingContestCanLike')) {
+        if (!entry.canLike()) {
             return null;
         }
 

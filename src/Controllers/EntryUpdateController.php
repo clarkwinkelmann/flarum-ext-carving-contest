@@ -26,8 +26,6 @@ class EntryUpdateController extends AbstractShowController
 
         $actor = $request->getAttribute('actor');
 
-        $this->assertCan($actor, 'carving-contest.like');
-
         $attributes = array_get($request->getParsedBody(), 'data.attributes', []);
 
         /**
@@ -35,12 +33,14 @@ class EntryUpdateController extends AbstractShowController
          */
         $entry = Entry::query()->findOrFail($id);
 
+        $this->assertCan($actor, 'like', $entry);
+
         if (isset($attributes['isLiked'])) {
-            $liked = (bool) $attributes['isLiked'];
+            $liked = (bool)$attributes['isLiked'];
 
             $currentlyLiked = $entry->likes()->where('user_id', $actor->id)->exists();
 
-            if ($liked && ! $currentlyLiked) {
+            if ($liked && !$currentlyLiked) {
                 $entry->likes()->attach($actor->id);
             } elseif ($currentlyLiked) {
                 $entry->likes()->detach($actor->id);

@@ -20,6 +20,7 @@ class EntrySerializer extends AbstractSerializer
             'name' => $entry->name,
             'image' => $entry->image,
             'createdAt' => $this->formatDate($entry->created_at),
+            'canLike' => $this->actor->can('like', $entry),
         ];
     }
 

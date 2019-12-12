@@ -19,7 +19,6 @@ class ForumAttributes implements ExtenderInterface
     {
         if ($event->isSerializer(ForumSerializer::class)) {
             $event->attributes['carvingContestCanView'] = $event->actor->can('carving-contest.view');
-            $event->attributes['carvingContestCanLike'] = $event->actor->can('carving-contest.like');
             $event->attributes['carvingContestCanParticipate'] = $event->actor->can('carving-contest.participate');
             $event->attributes['carvingContestCanModerate'] = $event->actor->can('carving-contest.moderate');
         }
