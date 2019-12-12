@@ -44,7 +44,7 @@ export default class PumpkinCanvas extends Component {
 
         this.onmouseup = () => {
             this.drawEnabled = false;
-        }
+        };
     }
 
     static initProps(props) {
@@ -63,6 +63,17 @@ export default class PumpkinCanvas extends Component {
 
         document.addEventListener('mouseup', this.onmouseup);
 
+        this.element.addEventListener('mousedown', event => {
+            this.drawEnabled = true;
+
+            this.mouseMove(event);
+        });
+        this.element.addEventListener('mousemove', this.mouseMove.bind(this));
+        this.element.addEventListener('mouseleave', () => {
+            // To remove the tool from preview
+            this.updatePreview();
+        });
+
         this.previewContext = this.element.querySelector('canvas').getContext('2d');
 
         this.updatePreview();
@@ -76,16 +87,6 @@ export default class PumpkinCanvas extends Component {
         return m('.CarvingContestPumpkin', m('canvas', {
             width: IMAGE_WIDTH,
             height: IMAGE_HEIGHT,
-            onmousedown: event => {
-                this.drawEnabled = true;
-
-                this.mouseMove(event);
-            },
-            onmousemove: this.mouseMove.bind(this),
-            onmouseleave: () => {
-                // To remove the tool from preview
-                this.updatePreview();
-            },
         }));
     }
 
