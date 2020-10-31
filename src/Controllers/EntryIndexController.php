@@ -7,15 +7,12 @@ use ClarkWinkelmann\CarvingContest\Serializers\EntrySerializer;
 use Flarum\Api\Controller\AbstractListController;
 use Flarum\Http\UrlGenerator;
 use Flarum\Search\SearchCriteria;
-use Flarum\User\AssertPermissionTrait;
 use Illuminate\Support\Arr;
 use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
 
 class EntryIndexController extends AbstractListController
 {
-    use AssertPermissionTrait;
-
     public $serializer = EntrySerializer::class;
 
     public $include = [
@@ -47,7 +44,7 @@ class EntryIndexController extends AbstractListController
     {
         $actor = $request->getAttribute('actor');
 
-        $this->assertCan($actor, 'carving-contest.view');
+        $actor->assertCan('carving-contest.view');
 
         $query = Arr::get($this->extractFilter($request), 'q');
         $sort = $this->extractSort($request);

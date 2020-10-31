@@ -1,4 +1,6 @@
+import app from 'flarum/app';
 import Modal from 'flarum/components/Modal';
+import Link from 'flarum/components/Link';
 import avatar from 'flarum/helpers/avatar';
 import username from 'flarum/helpers/username';
 
@@ -14,9 +16,8 @@ export default class PostLikesModal extends Modal {
     }
 
     content() {
-        return m('.Modal-body', m('ul.EntryLikesModal-list', this.props.entry.likes().map(user => m('li', m('a', {
+        return m('.Modal-body', m('ul.EntryLikesModal-list', this.attrs.entry.likes().map(user => m('li', m(Link, {
             href: app.route.user(user),
-            config: m.route,
         }, [
             avatar(user),
             ' ',

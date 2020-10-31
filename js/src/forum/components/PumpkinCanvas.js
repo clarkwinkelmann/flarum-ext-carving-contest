@@ -1,14 +1,12 @@
-import Component from 'flarum/Component';
+import app from 'flarum/app';
 
 /* global m */
 
 const IMAGE_WIDTH = 426;
 const IMAGE_HEIGHT = 426;
 
-export default class PumpkinCanvas extends Component {
-    init() {
-        super.init();
-
+export default class PumpkinCanvas {
+    oninit(vnode) {
         this.previewContext = null;
 
         const imageSourceCanvas = document.createElement('canvas');
@@ -28,7 +26,7 @@ export default class PumpkinCanvas extends Component {
         drawCanvas.height = IMAGE_HEIGHT;
         this.drawContext = drawCanvas.getContext('2d');
 
-        const startingImage = this.props.image();
+        const startingImage = vnode.attrs.image;
         if (startingImage) {
             const image = new Image();
             image.src = startingImage;
@@ -47,50 +45,40 @@ export default class PumpkinCanvas extends Component {
         };
     }
 
-    static initProps(props) {
-        if (!props.toolShape) {
-            props.toolShape = m.prop();
-        }
-        if (!props.toolWidth) {
-            props.toolWidth = m.prop();
-        }
-    }
-
-    config(isInitialized) {
-        if (isInitialized) {
-            return;
-        }
-
+    oncreate(vnode) {
         document.addEventListener('mouseup', this.onmouseup);
 
-        this.element.addEventListener('mousedown', event => {
+        vnode.dom.addEventListener('mousedown', event => {
             this.drawEnabled = true;
 
-            this.mouseMove(event);
+            this.mouseMove(vnode, event);
         });
-        this.element.addEventListener('mousemove', this.mouseMove.bind(this));
-        this.element.addEventListener('mouseleave', () => {
+        vnode.dom.addEventListener('mousemove', this.mouseMove.bind(this, vnode));
+        vnode.dom.addEventListener('mouseleave', () => {
             // To remove the tool from preview
             this.updatePreview();
         });
 
-        this.previewContext = this.element.querySelector('canvas').getContext('2d');
+        this.previewContext = vnode.dom.querySelector('canvas').getContext('2d');
 
         this.updatePreview();
     }
 
-    onunload() {
+    onremove() {
         document.removeEventListener('mouseup', this.onmouseup);
     }
 
-    view() {
+    view(vnode) {
+        this.toolWidth = vnode.attrs.toolWidth;
+        this.toolShape = vnode.attrs.toolShape;
+
         return m('.CarvingContestPumpkin', m('canvas', {
             width: IMAGE_WIDTH,
             height: IMAGE_HEIGHT,
         }));
     }
 
-    mouseMove(event) {
+    mouseMove(vnode, event) {
         const rect = event.target.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
@@ -99,7 +87,7 @@ export default class PumpkinCanvas extends Component {
             this.drawContext.fillStyle = '#000';
             this.drawWithTool(this.drawContext, x, y, true);
 
-            this.props.image(this.drawContext.canvas.toDataURL('image/png'));
+            vnode.attrs.onchange(this.drawContext.canvas.toDataURL('image/png'));
         }
 
         this.updatePreview({
@@ -109,9 +97,9 @@ export default class PumpkinCanvas extends Component {
     }
 
     drawWithTool(context, x, y, fill = false) {
-        const width = this.props.toolWidth();
+        const width = this.toolWidth;
 
-        switch (this.props.toolShape()) {
+        switch (this.toolShape) {
             case 'circle':
                 context.beginPath();
                 context.arc(x, y, width / 2, 0, 2 * Math.PI);
