@@ -15,8 +15,14 @@ class EntryDeleteController extends AbstractDeleteController
 
         $request->getAttribute('actor')->assertCan('carving-contest.moderate');
 
+        /**
+         * @var $entry Entry
+         */
         $entry = Entry::query()->findOrFail($id);
 
         $entry->delete();
+
+        $entry->user->carving_contest_entry_count = $entry->user->carvingContestEntries()->count();
+        $entry->user->save();
     }
 }

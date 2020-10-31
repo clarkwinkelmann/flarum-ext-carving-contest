@@ -23,7 +23,7 @@ class EntryStoreController extends AbstractCreateController
     {
         $actor = $request->getAttribute('actor');
 
-        $actor->assertCan('carving-contest.participate');
+        $actor->assertCan('create', Entry::class);
 
         $attributes = Arr::get($request->getParsedBody(), 'data.attributes', []);
 
@@ -39,6 +39,9 @@ class EntryStoreController extends AbstractCreateController
         $entry->name = Arr::get($attributes, 'name');
         $entry->image = Arr::get($attributes, 'image');
         $entry->save();
+
+        $actor->carving_contest_entry_count = $actor->carvingContestEntries()->count();
+        $actor->save();
 
         return $entry;
     }

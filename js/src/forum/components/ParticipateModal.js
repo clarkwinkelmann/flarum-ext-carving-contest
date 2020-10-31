@@ -12,6 +12,7 @@ export default class ParticipateModal extends Modal {
     toolWidth = 30;
     name = '';
     image = '';
+    disabled = true;
     loading = false;
 
     className() {
@@ -20,6 +21,17 @@ export default class ParticipateModal extends Modal {
 
     title() {
         return app.translator.trans(translationPrefix + 'title');
+    }
+
+    checkIfDisabled() {
+        const previouslyDisabled = this.disabled;
+
+        this.disabled = this.name === '' || this.image === '';
+
+        // Handle disabled state redraw when the image changes (because we don't redraw every time it changes)
+        if (previouslyDisabled !== this.disabled) {
+            m.redraw();
+        }
     }
 
     content() {
@@ -59,6 +71,8 @@ export default class ParticipateModal extends Modal {
                     image: this.image,
                     onchange: value => {
                         this.image = value;
+
+                        this.checkIfDisabled();
                     },
                 }),
             ]),
@@ -68,13 +82,15 @@ export default class ParticipateModal extends Modal {
                     value: this.name,
                     onchange: event => {
                         this.name = event.target.value;
+
+                        this.checkIfDisabled();
                     },
                 }),
             ]),
             m('.Form-group', [
                 Button.component({
                     loading: this.loading,
-                    disabled: this.name === '' || this.image === '',
+                    disabled: this.disabled,
                     className: 'Button Button--primary',
                     onclick: () => {
                         app.store.createRecord('carving-contest-entries').save({
@@ -86,7 +102,6 @@ export default class ParticipateModal extends Modal {
                     },
                 }, app.translator.trans(translationPrefix + 'submit')),
             ]),
-        ])
-            ;
+        ]);
     }
 }

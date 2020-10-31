@@ -3,6 +3,8 @@
 namespace ClarkWinkelmann\CarvingContest;
 
 use Flarum\Extend;
+use Flarum\Foundation\Application;
+use Flarum\User\User;
 use Illuminate\Contracts\Events\Dispatcher;
 
 return [
@@ -20,9 +22,13 @@ return [
         ->patch('/carving-contest/entries/{id:[0-9]+}', 'carving-contest.entries.update', Controllers\EntryUpdateController::class)
         ->delete('/carving-contest/entries/{id:[0-9]+}', 'carving-contest.entries.delete', Controllers\EntryDeleteController::class),
 
-    new Extenders\ForumAttributes(),
+    (new Extend\Model(User::class))
+        ->hasMany('carvingContestEntries', Entry::class),
 
-    function (Dispatcher $dispatcher) {
+    function (Dispatcher $dispatcher, Application $app) {
         $dispatcher->subscribe(Policies\EntryPolicy::class);
+
+        $app->register(Providers\ForumAttributes::class);
+        $app->register(Providers\UserAttributes::class);
     },
 ];

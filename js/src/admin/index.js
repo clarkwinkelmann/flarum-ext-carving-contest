@@ -2,8 +2,11 @@ import {extend} from 'flarum/extend';
 import app from 'flarum/app';
 import PermissionGrid from 'flarum/components/PermissionGrid';
 import ItemList from 'flarum/utils/ItemList';
+import SettingsModal from './modals/SettingsModal';
 
 app.initializers.add('clarkwinkelmann/carving-contest', () => {
+    app.extensionSettings['clarkwinkelmann-carving-contest'] = () => app.modal.show(SettingsModal);
+
     extend(PermissionGrid.prototype, 'permissionItems', groups => {
         const items = new ItemList();
 

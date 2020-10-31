@@ -169,6 +169,35 @@ export default class ContestPage extends Page {
         ]);
     }
 
+    participateButton() {
+        if (!app.session.user) {
+            return null;
+        }
+
+        if (app.session.user.attribute('carvingContestCanParticipate')) {
+            return Button.component({
+                className: 'Button Button--primary',
+                onclick: () => {
+                    app.modal.show(ParticipateModal, {
+                        onsave: () => {
+                            app.modal.close();
+                            this.refresh();
+                        },
+                    });
+                },
+            }, app.translator.trans(translationPrefix + 'participate'));
+        }
+
+        if (app.session.user.attribute('carvingContestCouldParticipate')) {
+            return Button.component({
+                className: 'Button Button--primary',
+                disabled: true,
+            }, app.translator.trans(translationPrefix + 'already-participated'));
+        }
+
+        return null;
+    }
+
     view() {
         if (this.entries === null) {
             return m('.container', m('p', app.translator.trans(translationPrefix + 'loading')));
@@ -183,17 +212,7 @@ export default class ContestPage extends Page {
 
         return m('.container', [
             m('h2', app.translator.trans(translationPrefix + 'title')),
-            app.forum.attribute('carvingContestCanParticipate') ? Button.component({
-                className: 'Button Button--primary',
-                onclick: () => {
-                    app.modal.show(ParticipateModal, {
-                        onsave: () => {
-                            app.modal.close();
-                            this.refresh();
-                        },
-                    });
-                },
-            }, app.translator.trans(translationPrefix + 'participate')) : null,
+            this.participateButton(),
             ' ',
             Dropdown.component({
                 buttonClassName: 'Button',
@@ -244,7 +263,7 @@ export default class ContestPage extends Page {
                         }
 
                         entry.delete().then(() => {
-                            this.refreshEntries();
+                            this.refresh();
                         });
                     },
                 }) : null,
