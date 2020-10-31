@@ -19,7 +19,7 @@ class EntrySearcher
         $this->gambits = $gambits;
     }
 
-    public function search(SearchCriteria $criteria, $limit = null, $offset = 0)
+    public function search(SearchCriteria $criteria, $limit = null, $offset = 0, array $load = [])
     {
         $actor = $criteria->actor;
 
@@ -32,14 +32,16 @@ class EntrySearcher
         $this->applyOffset($search, $offset);
         $this->applyLimit($search, $limit + 1);
 
-        $discussions = $query->get();
+        $entries = $query->get();
 
-        $areMoreResults = $limit > 0 && $discussions->count() > $limit;
+        $areMoreResults = $limit > 0 && $entries->count() > $limit;
 
         if ($areMoreResults) {
-            $discussions->pop();
+            $entries->pop();
         }
 
-        return new SearchResults($discussions, $areMoreResults);
+        $entries->load($load);
+
+        return new SearchResults($entries, $areMoreResults);
     }
 }

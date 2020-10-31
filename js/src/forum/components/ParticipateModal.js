@@ -8,10 +8,11 @@ const translationPrefix = 'clarkwinkelmann-carving-contest.forum.modal.';
 /* global m */
 
 export default class ParticipateModal extends Modal {
-    toolShape = m.prop('circle');
-    toolWidth = m.prop(30);
-    name = m.prop('');
-    image = m.prop('');
+    toolShape = 'circle';
+    toolWidth = 30;
+    name = '';
+    image = '';
+    disabled = true;
     loading = false;
 
     className() {
@@ -22,63 +23,84 @@ export default class ParticipateModal extends Modal {
         return app.translator.trans(translationPrefix + 'title');
     }
 
+    checkIfDisabled() {
+        const previouslyDisabled = this.disabled;
+
+        this.disabled = this.name === '' || this.image === '';
+
+        // Handle disabled state redraw when the image changes (because we don't redraw every time it changes)
+        if (previouslyDisabled !== this.disabled) {
+            m.redraw();
+        }
+    }
+
     content() {
         return m('.Modal-body', [
             m('.Form-group', [
                 m('.CarvingContestTools', [
                     Button.component({
-                        disabled: this.toolShape() === 'circle',
+                        disabled: this.toolShape === 'circle',
                         icon: 'fas fa-circle',
                         className: 'Button',
                         onclick: () => {
-                            this.toolShape('circle');
+                            this.toolShape = 'circle';
                         },
-                        children: app.translator.trans(translationPrefix + 'tools.circle'),
-                    }),
+                    }, app.translator.trans(translationPrefix + 'tools.circle')),
                     Button.component({
-                        disabled: this.toolShape() === 'square',
+                        disabled: this.toolShape === 'square',
                         icon: 'fas fa-square',
                         className: 'Button',
                         onclick: () => {
-                            this.toolShape('square');
+                            this.toolShape = 'square';
                         },
-                        children: app.translator.trans(translationPrefix + 'tools.square'),
-                    }),
+                    }, app.translator.trans(translationPrefix + 'tools.square')),
                     m('input', {
                         type: 'range',
                         step: 2,
                         min: 10,
                         max: 50,
-                        bidi: this.toolWidth,
+                        value: this.toolWidth,
+                        onchange: event => {
+                            this.toolWidth = parseInt(event.target.value);
+                        },
                     }),
                 ]),
-                PumpkinCanvas.component({
+                m(PumpkinCanvas, {
                     toolShape: this.toolShape,
                     toolWidth: this.toolWidth,
                     image: this.image,
+                    onchange: value => {
+                        this.image = value;
+
+                        this.checkIfDisabled();
+                    },
                 }),
             ]),
             m('.Form-group', [
                 m('label', app.translator.trans(translationPrefix + 'name')),
                 m('input[type=text].FormControl', {
-                    bidi: this.name,
+                    value: this.name,
+                    onchange: event => {
+                        this.name = event.target.value;
+
+                        this.checkIfDisabled();
+                    },
                 }),
             ]),
             m('.Form-group', [
                 Button.component({
                     loading: this.loading,
-                    disabled: this.name() === '' || this.image() === '',
+                    disabled: this.disabled,
                     className: 'Button Button--primary',
-                    children: app.translator.trans(translationPrefix + 'submit'),
                     onclick: () => {
                         app.store.createRecord('carving-contest-entries').save({
-                            name: this.name(),
-                            image: this.image(),
+                            name: this.name,
+                            image: this.image,
                         }).then(() => {
-                            this.props.oncreate();
+                            this.attrs.onsave();
                         });
                     },
-                }),
+                }, app.translator.trans(translationPrefix + 'submit')),
             ]),
         ]);
     }

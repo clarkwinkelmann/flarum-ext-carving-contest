@@ -6,15 +6,12 @@ use ClarkWinkelmann\CarvingContest\Entry;
 use ClarkWinkelmann\CarvingContest\Serializers\EntrySerializer;
 use ClarkWinkelmann\CarvingContest\Validators\EntryValidator;
 use Flarum\Api\Controller\AbstractCreateController;
-use Flarum\User\AssertPermissionTrait;
 use Illuminate\Support\Arr;
 use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
 
 class EntryStoreController extends AbstractCreateController
 {
-    use AssertPermissionTrait;
-
     public $serializer = EntrySerializer::class;
 
     public $include = [
@@ -26,9 +23,9 @@ class EntryStoreController extends AbstractCreateController
     {
         $actor = $request->getAttribute('actor');
 
-        $this->assertCan($actor, 'carving-contest.participate');
+        $actor->assertCan('create', Entry::class);
 
-        $attributes = array_get($request->getParsedBody(), 'data.attributes', []);
+        $attributes = Arr::get($request->getParsedBody(), 'data.attributes', []);
 
         /**
          * @var $validator EntryValidator
@@ -42,6 +39,9 @@ class EntryStoreController extends AbstractCreateController
         $entry->name = Arr::get($attributes, 'name');
         $entry->image = Arr::get($attributes, 'image');
         $entry->save();
+
+        $actor->carving_contest_entry_count = $actor->carvingContestEntries()->count();
+        $actor->save();
 
         return $entry;
     }

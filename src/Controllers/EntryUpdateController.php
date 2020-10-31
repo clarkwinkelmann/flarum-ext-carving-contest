@@ -5,14 +5,12 @@ namespace ClarkWinkelmann\CarvingContest\Controllers;
 use ClarkWinkelmann\CarvingContest\Entry;
 use ClarkWinkelmann\CarvingContest\Serializers\EntrySerializer;
 use Flarum\Api\Controller\AbstractShowController;
-use Flarum\User\AssertPermissionTrait;
+use Illuminate\Support\Arr;
 use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
 
 class EntryUpdateController extends AbstractShowController
 {
-    use AssertPermissionTrait;
-
     public $serializer = EntrySerializer::class;
 
     public $include = [
@@ -22,18 +20,18 @@ class EntryUpdateController extends AbstractShowController
 
     protected function data(ServerRequestInterface $request, Document $document)
     {
-        $id = array_get($request->getQueryParams(), 'id');
+        $id = Arr::get($request->getQueryParams(), 'id');
 
         $actor = $request->getAttribute('actor');
 
-        $attributes = array_get($request->getParsedBody(), 'data.attributes', []);
+        $attributes = Arr::get($request->getParsedBody(), 'data.attributes', []);
 
         /**
          * @var $entry Entry
          */
         $entry = Entry::query()->findOrFail($id);
 
-        $this->assertCan($actor, 'like', $entry);
+        $actor->assertCan('like', $entry);
 
         if (isset($attributes['isLiked'])) {
             $liked = (bool)$attributes['isLiked'];
