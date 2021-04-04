@@ -132,9 +132,32 @@
             text-decoration: underline;
         }
     }
+
     .Avatar {
         .Avatar--size(32px);
         vertical-align: middle;
         margin-right: 5px;
+    }
+}
+
+.CarvingContest-ColorChoice {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border-radius: 2px;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+
+    &:not(:first-child) {
+        margin-left: 5px;
+    }
+
+    &:hover {
+        border-color: #ccc;
+    }
+
+    &.selected {
+        border-color: red;
     }
 }

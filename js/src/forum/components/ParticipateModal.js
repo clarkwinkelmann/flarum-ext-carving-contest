@@ -2,14 +2,14 @@ import app from 'flarum/app';
 import Modal from 'flarum/common/components/Modal';
 import Button from 'flarum/common/components/Button';
 import PumpkinCanvas from './PumpkinCanvas';
+import BrushState from '../states/BrushState';
 
 const translationPrefix = 'clarkwinkelmann-carving-contest.forum.modal.';
 
 /* global m */
 
 export default class ParticipateModal extends Modal {
-    toolShape = 'circle';
-    toolWidth = 30;
+    brush = new BrushState();
     name = '';
     image = '';
     disabled = true;
@@ -34,24 +34,74 @@ export default class ParticipateModal extends Modal {
         }
     }
 
+    colorChoice() {
+        const colors = app.forum.attribute('carvingContestColors');
+
+        if (colors === 'all') {
+            return m('input', {
+                type: 'color',
+                value: this.brush.color,
+                onchange: event => {
+                    this.brush.color = event.target.value;
+                },
+            });
+        }
+
+        let colorOptions;
+
+        if (colors === 'simple') {
+            colorOptions = [
+                '#f32501', // Red
+                '#ff8d12', // Orange
+                '#ffe884', // Yellow
+                '#94ae3f', // Green
+                '#084f93', // Blue
+                '#000000', // Black
+            ];
+        } else {
+            colorOptions = app.forum.attribute('carvingContestColors').split(',');
+        }
+
+        return m('div', colorOptions.map(color => m('.CarvingContest-ColorChoice', {
+            style: {
+                backgroundColor: color,
+            },
+            onclick: () => {
+                this.brush.color = color;
+            },
+            className: this.brush.color === color ? 'selected' : '',
+        })));
+    }
+
+    colorTools() {
+        if (!app.forum.attribute('carvingContestColorMode')) {
+            return null;
+        }
+
+        return m('.CarvingContestTools', [
+            this.colorChoice(),
+        ]);
+    }
+
     content() {
         return m('.Modal-body', [
             m('.Form-group', [
+                this.colorTools(),
                 m('.CarvingContestTools', [
                     Button.component({
-                        disabled: this.toolShape === 'circle',
+                        disabled: this.brush.shape === 'circle',
                         icon: 'fas fa-circle',
                         className: 'Button',
                         onclick: () => {
-                            this.toolShape = 'circle';
+                            this.brush.shape = 'circle';
                         },
                     }, app.translator.trans(translationPrefix + 'tools.circle')),
                     Button.component({
-                        disabled: this.toolShape === 'square',
+                        disabled: this.brush.shape === 'square',
                         icon: 'fas fa-square',
                         className: 'Button',
                         onclick: () => {
-                            this.toolShape = 'square';
+                            this.brush.shape = 'square';
                         },
                     }, app.translator.trans(translationPrefix + 'tools.square')),
                     m('input', {
@@ -59,15 +109,15 @@ export default class ParticipateModal extends Modal {
                         step: 2,
                         min: 10,
                         max: 50,
-                        value: this.toolWidth,
+                        value: this.brush.width,
                         onchange: event => {
-                            this.toolWidth = parseInt(event.target.value);
+                            this.brush.width = parseInt(event.target.value);
                         },
                     }),
                 ]),
                 m(PumpkinCanvas, {
-                    toolShape: this.toolShape,
-                    toolWidth: this.toolWidth,
+                    mode: app.forum.attribute('carvingContestColorMode') ? 'color' : 'carve',
+                    brush: this.brush,
                     image: this.image,
                     onchange: value => {
                         this.image = value;

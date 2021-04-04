@@ -242,6 +242,7 @@ export default class ContestPage extends Page {
                 key: entry.id(), // Without this, canvas are re-used, causing incorrect images to be shown when one is deleted
             }, [
                 m(PumpkinCanvas, {
+                    mode: app.forum.attribute('carvingContestColorMode') ? 'color' : 'carve',
                     image: entry.image(),
                 }),
                 m('h3.CarvingContestEntry--name', entry.name()),

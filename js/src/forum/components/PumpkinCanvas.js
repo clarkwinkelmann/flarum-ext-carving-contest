@@ -7,12 +7,15 @@ const IMAGE_HEIGHT = 426;
 
 export default class PumpkinCanvas {
     oninit(vnode) {
+        this.mode = vnode.attrs.mode;
+        this.brush = vnode.attrs.brush;
+
         this.previewContext = null;
 
-        const imageSourceCanvas = document.createElement('canvas');
-        imageSourceCanvas.width = IMAGE_WIDTH;
-        imageSourceCanvas.height = IMAGE_HEIGHT;
-        this.imageSourceContext = imageSourceCanvas.getContext('2d');
+        this.imageSourceCanvas = document.createElement('canvas');
+        this.imageSourceCanvas.width = IMAGE_WIDTH;
+        this.imageSourceCanvas.height = IMAGE_HEIGHT;
+        this.imageSourceContext = this.imageSourceCanvas.getContext('2d');
         const image = new Image();
         image.src = app.forum.attribute('baseUrl') + '/assets/extensions/clarkwinkelmann-carving-contest/pumpkin.jpg';
         image.onload = () => {
@@ -21,10 +24,10 @@ export default class PumpkinCanvas {
             this.updatePreview();
         };
 
-        const drawCanvas = document.createElement('canvas');
-        drawCanvas.width = IMAGE_WIDTH;
-        drawCanvas.height = IMAGE_HEIGHT;
-        this.drawContext = drawCanvas.getContext('2d');
+        this.drawCanvas = document.createElement('canvas');
+        this.drawCanvas.width = IMAGE_WIDTH;
+        this.drawCanvas.height = IMAGE_HEIGHT;
+        this.drawContext = this.drawCanvas.getContext('2d');
 
         const startingImage = vnode.attrs.image;
         if (startingImage) {
@@ -68,10 +71,7 @@ export default class PumpkinCanvas {
         document.removeEventListener('mouseup', this.onmouseup);
     }
 
-    view(vnode) {
-        this.toolWidth = vnode.attrs.toolWidth;
-        this.toolShape = vnode.attrs.toolShape;
-
+    view() {
         return m('.CarvingContestPumpkin', m('canvas', {
             width: IMAGE_WIDTH,
             height: IMAGE_HEIGHT,
@@ -83,8 +83,12 @@ export default class PumpkinCanvas {
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
 
-        if (this.drawEnabled) {
-            this.drawContext.fillStyle = '#000';
+        if (this.drawEnabled && this.brush) {
+            if (this.mode === 'color') {
+                this.drawContext.fillStyle = this.brush.color;
+            } else {
+                this.drawContext.fillStyle = '#000';
+            }
             this.drawWithTool(this.drawContext, x, y, true);
 
             vnode.attrs.onchange(this.drawContext.canvas.toDataURL('image/png'));
@@ -97,22 +101,27 @@ export default class PumpkinCanvas {
     }
 
     drawWithTool(context, x, y, fill = false) {
-        const width = this.toolWidth;
+        if (!this.brush) {
+            return;
+        }
 
-        switch (this.toolShape) {
+        const width = this.brush.width;
+
+        context.beginPath();
+
+        switch (this.brush.shape) {
             case 'circle':
-                context.beginPath();
                 context.arc(x, y, width / 2, 0, 2 * Math.PI);
-
-                if (fill) {
-                    context.fill();
-                } else {
-                    context.stroke();
-                }
                 break;
             case 'square':
-                context.fillRect(x - (width / 2), y - (width / 2), width, width);
+                context.rect(x - (width / 2), y - (width / 2), width, width);
                 break;
+        }
+
+        if (fill) {
+            context.fill();
+        } else {
+            context.stroke();
         }
     }
 
@@ -121,22 +130,30 @@ export default class PumpkinCanvas {
             return;
         }
 
-        const imageSourceData = this.imageSourceContext.getImageData(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
-        const drawData = this.drawContext.getImageData(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
-
-        for (let i = 0; i < imageSourceData.data.length; i += 4) {
-            // If the pixel in that area has an alpha value greater than 0, we create a hole in the image data
-            // Returning 0 for every index will give rgba(0,0,0,0)
-            if (drawData.data[i + 3] > 0) {
-                imageSourceData.data[i] = 0;
-                imageSourceData.data[i + 1] = 0;
-                imageSourceData.data[i + 2] = 0;
-                imageSourceData.data[i + 3] = 0;
-            }
-        }
-
         this.previewContext.clearRect(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
-        this.previewContext.putImageData(imageSourceData, 0, 0);
+
+        if (this.mode === 'color') {
+            // In paint mode, we draw the two images on top of another
+            this.previewContext.drawImage(this.imageSourceCanvas, 0, 0);
+            this.previewContext.drawImage(this.drawCanvas, 0, 0);
+        } else {
+            // In carve mode, we subtract the drawing from the source
+            const imageSourceData = this.imageSourceContext.getImageData(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
+            const drawData = this.drawContext.getImageData(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
+
+            for (let i = 0; i < imageSourceData.data.length; i += 4) {
+                // If the pixel in that area has an alpha value greater than 0, we create a hole in the image data
+                // Returning 0 for every index will give rgba(0,0,0,0)
+                if (drawData.data[i + 3] > 0) {
+                    imageSourceData.data[i] = 0;
+                    imageSourceData.data[i + 1] = 0;
+                    imageSourceData.data[i + 2] = 0;
+                    imageSourceData.data[i + 3] = 0;
+                }
+            }
+
+            this.previewContext.putImageData(imageSourceData, 0, 0);
+        }
 
         if (toolPosition) {
             this.previewContext.strokeStyle = 'rgba(0,0,0,0.5)';

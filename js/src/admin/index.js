@@ -15,6 +15,60 @@ app.initializers.add('carving-contest', () => {
                 }),
             ]);
         })
+        .registerSetting({
+            type: 'switch',
+            setting: 'carving-contest.colorMode',
+            label: app.translator.trans('clarkwinkelmann-carving-contest.admin.settings.colorMode'),
+        })
+        .registerSetting(function () {
+            const setting = this.setting('carving-contest.colors', 'simple');
+            const disabled = !this.setting('carving-contest.colorMode')();
+
+            return [
+                m('.Form-group.CarvingContest-Subgroup', [
+                    m('label', [
+                        m('input', {
+                            type: 'radio',
+                            name: 'carving-contest-color',
+                            checked: setting() === 'simple',
+                            onchange: () => setting('simple'),
+                            disabled,
+                        }),
+                        ' ',
+                        app.translator.trans('clarkwinkelmann-carving-contest.admin.colors.simple'),
+                    ]),
+                    m('label', [
+                        m('input', {
+                            type: 'radio',
+                            name: 'carving-contest-color',
+                            checked: setting() === 'all',
+                            onchange: () => setting('all'),
+                            disabled,
+                        }),
+                        ' ',
+                        app.translator.trans('clarkwinkelmann-carving-contest.admin.colors.all'),
+                    ]),
+                    m('label', [
+                        m('input', {
+                            type: 'radio',
+                            name: 'carving-contest-color',
+                            checked: setting() !== 'simple' && setting() !== 'all',
+                            onchange: () => setting(''),
+                            disabled,
+                        }),
+                        ' ',
+                        app.translator.trans('clarkwinkelmann-carving-contest.admin.colors.custom'),
+                    ]),
+                    setting() !== 'simple' && setting() !== 'all' ? [
+                        m('input.FormControl', {
+                            bidi: setting,
+                            disabled,
+                        }),
+                        m('.helpText', app.translator.trans('clarkwinkelmann-carving-contest.admin.colors.custom-help')),
+                    ] : null,
+                ]),
+            ];
+        })
         .registerPermission({
             icon: 'fas fa-spider',
             label: app.translator.trans('clarkwinkelmann-carving-contest.admin.permissions.view'),

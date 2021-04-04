@@ -14,7 +14,8 @@ return [
         ->css(__DIR__ . '/resources/less/forum.less')
         ->route('/carving-contest', 'carving-contest', Content\Entries::class),
     (new Extend\Frontend('admin'))
-        ->js(__DIR__ . '/js/dist/admin.js'),
+        ->js(__DIR__ . '/js/dist/admin.js')
+        ->css(__DIR__ . '/resources/less/admin.less'),
     new Extend\Locales(__DIR__ . '/resources/locale'),
 
     (new Extend\Routes('api'))
@@ -63,4 +64,8 @@ return [
 
     (new Extend\Filter(Filters\EntryFilterer::class))
         ->addFilter(Filters\NoOpFilter::class),
+
+    (new Extend\Settings())
+        ->serializeToForum('carvingContestColorMode', 'carving-contest.colorMode', 'boolval')
+        ->serializeToForum('carvingContestColors', 'carving-contest.colors'),
 ];
