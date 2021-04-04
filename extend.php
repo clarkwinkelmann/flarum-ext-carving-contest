@@ -2,10 +2,11 @@
 
 namespace ClarkWinkelmann\CarvingContest;
 
+use Flarum\Api\Serializer\BasicUserSerializer;
+use Flarum\Api\Serializer\ForumSerializer;
+use Flarum\Api\Serializer\UserSerializer;
 use Flarum\Extend;
-use Flarum\Foundation\Application;
 use Flarum\User\User;
-use Illuminate\Contracts\Events\Dispatcher;
 
 return [
     (new Extend\Frontend('forum'))
@@ -25,10 +26,41 @@ return [
     (new Extend\Model(User::class))
         ->hasMany('carvingContestEntries', Entry::class),
 
-    function (Dispatcher $dispatcher, Application $app) {
-        $dispatcher->subscribe(Policies\EntryPolicy::class);
+    (new Extend\ApiSerializer(ForumSerializer::class))
+        ->attributes(function (ForumSerializer $serializer): array {
+            return [
+                'carvingContestCanView' => $serializer->getActor()->hasPermission('carving-contest.view'),
+                'carvingContestCanModerate' => $serializer->getActor()->hasPermission('carving-contest.moderate'),
+            ];
+        }),
 
-        $app->register(Providers\ForumAttributes::class);
-        $app->register(Providers\UserAttributes::class);
-    },
+    (new Extend\ApiSerializer(UserSerializer::class))
+        ->attributes(function (UserSerializer $serializer, User $user): array {
+            if ($serializer->getActor()->can('carving-contest.view')) {
+                return [
+                    'carvingContestEntryCount' => $user->carving_contest_entry_count,
+                ];
+            }
+
+            return [];
+        }),
+
+    (new Extend\ApiSerializer(BasicUserSerializer::class))
+        ->attributes(function (BasicUserSerializer $serializer, User $user): array {
+            // Use is() instead of CurrentUserSerializer because we need this information to update with relationships as well
+            if ($serializer->getActor()->is($user)) {
+                return [
+                    'carvingContestCouldParticipate' => $user->can('createIfNotReachedLimit', Entry::class),
+                    'carvingContestCanParticipate' => $user->can('create', Entry::class),
+                ];
+            }
+
+            return [];
+        }),
+
+    (new Extend\Policy())
+        ->modelPolicy(Entry::class, Policies\EntryPolicy::class),
+
+    (new Extend\Filter(Filters\EntryFilterer::class))
+        ->addFilter(Filters\NoOpFilter::class),
 ];

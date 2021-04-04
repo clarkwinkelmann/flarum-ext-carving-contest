@@ -2,12 +2,11 @@
 
 namespace ClarkWinkelmann\CarvingContest\Controllers;
 
-use ClarkWinkelmann\CarvingContest\Search\EntrySearcher;
+use ClarkWinkelmann\CarvingContest\Filters\EntryFilterer;
 use ClarkWinkelmann\CarvingContest\Serializers\EntrySerializer;
 use Flarum\Api\Controller\AbstractListController;
 use Flarum\Http\UrlGenerator;
-use Flarum\Search\SearchCriteria;
-use Illuminate\Support\Arr;
+use Flarum\Query\QueryCriteria;
 use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
 
@@ -31,12 +30,12 @@ class EntryIndexController extends AbstractListController
 
     public $limit = 12;
 
-    protected $searcher;
+    protected $filterer;
     protected $url;
 
-    public function __construct(EntrySearcher $searcher, UrlGenerator $url)
+    public function __construct(EntryFilterer $filterer, UrlGenerator $url)
     {
-        $this->searcher = $searcher;
+        $this->filterer = $filterer;
         $this->url = $url;
     }
 
@@ -46,16 +45,15 @@ class EntryIndexController extends AbstractListController
 
         $actor->assertCan('carving-contest.view');
 
-        $query = Arr::get($this->extractFilter($request), 'q');
+        $filters = $this->extractFilter($request);
         $sort = $this->extractSort($request);
-
-        $criteria = new SearchCriteria($actor, $query, $sort);
 
         $limit = $this->extractLimit($request);
         $offset = $this->extractOffset($request);
-        $load = $this->extractInclude($request);
+        $include = $this->extractInclude($request);
 
-        $results = $this->searcher->search($criteria, $limit, $offset, $load);
+        $criteria = new QueryCriteria($actor, $filters, $sort);
+        $results = $this->filterer->filter($criteria, $limit, $offset);
 
         $document->addPaginationLinks(
             $this->url->to('api')->route('carving-contest.entries.index'),
@@ -65,6 +63,6 @@ class EntryIndexController extends AbstractListController
             $results->areMoreResults() ? null : 0
         );
 
-        return $results->getResults();
+        return $results->getResults()->load($include);
     }
 }

@@ -1,13 +1,13 @@
-import {extend} from 'flarum/extend';
+import {extend} from 'flarum/common/extend';
 import app from 'flarum/app';
-import IndexPage from 'flarum/components/IndexPage';
-import LinkButton from 'flarum/components/LinkButton';
+import IndexPage from 'flarum/forum/components/IndexPage';
+import LinkButton from 'flarum/common/components/LinkButton';
 import Entry from './models/Entry';
 import ContestPage from './components/ContestPage';
 
 /* global m */
 
-app.initializers.add('clarkwinkelmann/carving-contest', () => {
+app.initializers.add('carving-contest', () => {
     app.store.models['carving-contest-entries'] = Entry;
 
     app.routes.carvingContest = {

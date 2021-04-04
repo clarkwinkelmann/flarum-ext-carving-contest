@@ -19,6 +19,13 @@ class EntryStoreController extends AbstractCreateController
         'likes',
     ];
 
+    protected $validator;
+
+    public function __construct(EntryValidator $validator)
+    {
+        $this->validator = $validator;
+    }
+
     protected function data(ServerRequestInterface $request, Document $document)
     {
         $actor = $request->getAttribute('actor');
@@ -27,12 +34,7 @@ class EntryStoreController extends AbstractCreateController
 
         $attributes = Arr::get($request->getParsedBody(), 'data.attributes', []);
 
-        /**
-         * @var $validator EntryValidator
-         */
-        $validator = app(EntryValidator::class);
-
-        $validator->assertValid($attributes);
+        $this->validator->assertValid($attributes);
 
         $entry = new Entry();
         $entry->user()->associate($actor);

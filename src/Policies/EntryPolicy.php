@@ -4,19 +4,17 @@ namespace ClarkWinkelmann\CarvingContest\Policies;
 
 use ClarkWinkelmann\CarvingContest\Entry;
 use Flarum\Settings\SettingsRepositoryInterface;
-use Flarum\User\AbstractPolicy;
+use Flarum\User\Access\AbstractPolicy;
 use Flarum\User\User;
 
 class EntryPolicy extends AbstractPolicy
 {
-    protected $model = Entry::class;
-
-    function createIfNotReachedLimit(User $actor)
+    function createIfNotReachedLimit(User $actor): bool
     {
         return $actor->hasPermission('carving-contest.participate');
     }
 
-    function create(User $actor)
+    function create(User $actor): bool
     {
         if (!$this->createIfNotReachedLimit($actor)) {
             return false;
@@ -25,7 +23,7 @@ class EntryPolicy extends AbstractPolicy
         /**
          * @var $settings SettingsRepositoryInterface
          */
-        $settings = app(SettingsRepositoryInterface::class);
+        $settings = resolve(SettingsRepositoryInterface::class);
 
         $maxEntries = (int)$settings->get('carving-contest.maxEntriesPerUser');
 
@@ -36,7 +34,7 @@ class EntryPolicy extends AbstractPolicy
         return true;
     }
 
-    function like(User $actor, Entry $entry)
+    function like(User $actor, Entry $entry): bool
     {
         if ($actor->cannot('carving-contest.like')) {
             return false;

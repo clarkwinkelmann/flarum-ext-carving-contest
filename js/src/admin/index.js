@@ -1,43 +1,39 @@
-import {extend} from 'flarum/extend';
 import app from 'flarum/app';
-import PermissionGrid from 'flarum/components/PermissionGrid';
-import ItemList from 'flarum/utils/ItemList';
-import SettingsModal from './modals/SettingsModal';
 
-app.initializers.add('clarkwinkelmann/carving-contest', () => {
-    app.extensionSettings['clarkwinkelmann-carving-contest'] = () => app.modal.show(SettingsModal);
+/* global m */
 
-    extend(PermissionGrid.prototype, 'permissionItems', groups => {
-        const items = new ItemList();
-
-        items.add('view', {
+app.initializers.add('carving-contest', () => {
+    app.extensionData.for('clarkwinkelmann-carving-contest')
+        .registerSetting(function () {
+            return m('.Form-group', [
+                m('label', app.translator.trans('clarkwinkelmann-carving-contest.admin.settings.maxEntriesPerUser')),
+                m('input.FormControl', {
+                    type: 'number',
+                    min: 0,
+                    step: 1,
+                    bidi: this.setting('carving-contest.maxEntriesPerUser', 0),
+                }),
+            ]);
+        })
+        .registerPermission({
             icon: 'fas fa-spider',
             label: app.translator.trans('clarkwinkelmann-carving-contest.admin.permissions.view'),
             permission: 'carving-contest.view',
             allowGuest: true,
-        });
-
-        items.add('like', {
+        }, 'view')
+        .registerPermission({
             icon: 'fas fa-spider',
             label: app.translator.trans('clarkwinkelmann-carving-contest.admin.permissions.like'),
             permission: 'carving-contest.like',
-        });
-
-        items.add('participate', {
+        }, 'reply')
+        .registerPermission({
             icon: 'fas fa-spider',
             label: app.translator.trans('clarkwinkelmann-carving-contest.admin.permissions.participate'),
             permission: 'carving-contest.participate',
-        });
-
-        items.add('moderate', {
+        }, 'reply')
+        .registerPermission({
             icon: 'fas fa-spider',
             label: app.translator.trans('clarkwinkelmann-carving-contest.admin.permissions.moderate'),
             permission: 'carving-contest.moderate',
-        });
-
-        groups.add('carving-contest', {
-            label: app.translator.trans('clarkwinkelmann-carving-contest.admin.permissions.heading'),
-            children: items.toArray(),
-        });
-    });
+        }, 'moderate');
 });

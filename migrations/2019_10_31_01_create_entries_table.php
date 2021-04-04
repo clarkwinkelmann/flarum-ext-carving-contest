@@ -17,6 +17,6 @@ return [
         });
     },
     'down' => function (Builder $schema) {
-        $schema->drop('carving_contest_entries');
+        $schema->dropIfExists('carving_contest_entries');
     },
 ];
