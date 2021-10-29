@@ -1,17 +1,16 @@
-import app from 'flarum/app';
-
-/* global m */
+import app from 'flarum/admin/app';
+import ExtensionPage from 'flarum/admin/components/ExtensionPage';
 
 app.initializers.add('carving-contest', () => {
     app.extensionData.for('clarkwinkelmann-carving-contest')
-        .registerSetting(function () {
+        .registerSetting(function (this: ExtensionPage) {
             return m('.Form-group', [
                 m('label', app.translator.trans('clarkwinkelmann-carving-contest.admin.settings.maxEntriesPerUser')),
                 m('input.FormControl', {
                     type: 'number',
                     min: 0,
                     step: 1,
-                    bidi: this.setting('carving-contest.maxEntriesPerUser', 0),
+                    bidi: this.setting('carving-contest.maxEntriesPerUser', '0'),
                 }),
             ]);
         })
@@ -20,7 +19,7 @@ app.initializers.add('carving-contest', () => {
             setting: 'carving-contest.colorMode',
             label: app.translator.trans('clarkwinkelmann-carving-contest.admin.settings.colorMode'),
         })
-        .registerSetting(function () {
+        .registerSetting(function (this: ExtensionPage) {
             const setting = this.setting('carving-contest.colors', 'simple');
             const disabled = !this.setting('carving-contest.colorMode')();
 

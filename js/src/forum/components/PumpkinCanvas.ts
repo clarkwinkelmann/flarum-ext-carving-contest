@@ -1,21 +1,36 @@
-import app from 'flarum/app';
+import {ClassComponent, Vnode, VnodeDOM} from 'mithril';
+import app from 'flarum/forum/app';
+import BrushState from '../states/BrushState';
 
-/* global m */
+interface PumpkinCanvasAttrs {
+    mode: 'color' | 'carve'
+    brush?: BrushState
+    image?: string
+    onchange?: (value: string) => void
+}
 
 const IMAGE_WIDTH = 426;
 const IMAGE_HEIGHT = 426;
 
-export default class PumpkinCanvas {
-    oninit(vnode) {
+export default class PumpkinCanvas implements ClassComponent<PumpkinCanvasAttrs> {
+    mode!: 'color' | 'carve'
+    brush?: BrushState
+    previewContext: CanvasRenderingContext2D | null = null
+    imageSourceCanvas!: HTMLCanvasElement
+    imageSourceContext!: CanvasRenderingContext2D
+    drawCanvas!: HTMLCanvasElement
+    drawContext!: CanvasRenderingContext2D
+    onmouseup!: () => void
+    drawEnabled: boolean = false
+
+    oninit(vnode: Vnode<PumpkinCanvasAttrs, this>) {
         this.mode = vnode.attrs.mode;
         this.brush = vnode.attrs.brush;
-
-        this.previewContext = null;
 
         this.imageSourceCanvas = document.createElement('canvas');
         this.imageSourceCanvas.width = IMAGE_WIDTH;
         this.imageSourceCanvas.height = IMAGE_HEIGHT;
-        this.imageSourceContext = this.imageSourceCanvas.getContext('2d');
+        this.imageSourceContext = this.imageSourceCanvas.getContext('2d')!;
         const image = new Image();
         image.src = app.forum.attribute('baseUrl') + '/assets/extensions/clarkwinkelmann-carving-contest/pumpkin.jpg';
         image.onload = () => {
@@ -27,7 +42,7 @@ export default class PumpkinCanvas {
         this.drawCanvas = document.createElement('canvas');
         this.drawCanvas.width = IMAGE_WIDTH;
         this.drawCanvas.height = IMAGE_HEIGHT;
-        this.drawContext = this.drawCanvas.getContext('2d');
+        this.drawContext = this.drawCanvas.getContext('2d')!;
 
         const startingImage = vnode.attrs.image;
         if (startingImage) {
@@ -48,21 +63,21 @@ export default class PumpkinCanvas {
         };
     }
 
-    oncreate(vnode) {
+    oncreate(vnode: VnodeDOM<PumpkinCanvasAttrs, this>) {
         document.addEventListener('mouseup', this.onmouseup);
 
         vnode.dom.addEventListener('mousedown', event => {
             this.drawEnabled = true;
 
-            this.mouseMove(vnode, event);
+            this.mouseMove(vnode, event as MouseEvent);
         });
-        vnode.dom.addEventListener('mousemove', this.mouseMove.bind(this, vnode));
+        vnode.dom.addEventListener('mousemove', this.mouseMove.bind(this, vnode) as any);
         vnode.dom.addEventListener('mouseleave', () => {
             // To remove the tool from preview
             this.updatePreview();
         });
 
-        this.previewContext = vnode.dom.querySelector('canvas').getContext('2d');
+        this.previewContext = vnode.dom.querySelector('canvas')!.getContext('2d');
 
         this.updatePreview();
     }
@@ -78,20 +93,22 @@ export default class PumpkinCanvas {
         }));
     }
 
-    mouseMove(vnode, event) {
-        const rect = event.target.getBoundingClientRect();
+    mouseMove(vnode: VnodeDOM<PumpkinCanvasAttrs, this>, event: MouseEvent) {
+        const rect = (event.target as HTMLElement).getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
 
         if (this.drawEnabled && this.brush) {
-            if (this.mode === 'color') {
+            if (this.mode === 'color' && this.brush.color) {
                 this.drawContext.fillStyle = this.brush.color;
             } else {
                 this.drawContext.fillStyle = '#000';
             }
             this.drawWithTool(this.drawContext, x, y, true);
 
-            vnode.attrs.onchange(this.drawContext.canvas.toDataURL('image/png'));
+            if (vnode.attrs.onchange) {
+                vnode.attrs.onchange(this.drawContext.canvas.toDataURL('image/png'));
+            }
         }
 
         this.updatePreview({
@@ -100,7 +117,7 @@ export default class PumpkinCanvas {
         });
     }
 
-    drawWithTool(context, x, y, fill = false) {
+    drawWithTool(context: CanvasRenderingContext2D, x: number, y: number, fill: boolean = false) {
         if (!this.brush) {
             return;
         }
@@ -125,7 +142,7 @@ export default class PumpkinCanvas {
         }
     }
 
-    updatePreview(toolPosition = null) {
+    updatePreview(toolPosition: { x: number, y: number } | null = null) {
         if (!this.previewContext) {
             return;
         }

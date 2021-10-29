@@ -1,19 +1,25 @@
-import app from 'flarum/app';
+import app from 'flarum/forum/app';
 import Modal from 'flarum/common/components/Modal';
 import Button from 'flarum/common/components/Button';
 import PumpkinCanvas from './PumpkinCanvas';
 import BrushState from '../states/BrushState';
 
+interface ParticipateModalAttrs {
+    onsave: () => void
+}
+
 const translationPrefix = 'clarkwinkelmann-carving-contest.forum.modal.';
 
-/* global m */
-
+// @ts-ignore Modal.view causing typescript errors
 export default class ParticipateModal extends Modal {
-    brush = new BrushState();
-    name = '';
-    image = '';
-    disabled = true;
-    loading = false;
+    // We cannot type-hint through extend at this time so we code it here
+    attrs!: ParticipateModalAttrs
+
+    brush: BrushState = new BrushState()
+    name: string = ''
+    image: string = ''
+    disabled: boolean = true
+    loading: boolean = false
 
     className() {
         return 'Modal--large';
@@ -41,13 +47,13 @@ export default class ParticipateModal extends Modal {
             return m('input', {
                 type: 'color',
                 value: this.brush.color,
-                onchange: event => {
-                    this.brush.color = event.target.value;
+                onchange: (event: Event) => {
+                    this.brush.color = (event.target as HTMLInputElement).value;
                 },
             });
         }
 
-        let colorOptions;
+        let colorOptions: string[];
 
         if (colors === 'simple') {
             colorOptions = [
@@ -110,8 +116,8 @@ export default class ParticipateModal extends Modal {
                         min: 10,
                         max: 50,
                         value: this.brush.width,
-                        onchange: event => {
-                            this.brush.width = parseInt(event.target.value);
+                        onchange: (event: Event) => {
+                            this.brush.width = parseInt((event.target as HTMLInputElement).value);
                         },
                     }),
                 ]),
@@ -130,8 +136,8 @@ export default class ParticipateModal extends Modal {
                 m('label', app.translator.trans(translationPrefix + 'name')),
                 m('input[type=text].FormControl', {
                     value: this.name,
-                    onchange: event => {
-                        this.name = event.target.value;
+                    onchange: (event: Event) => {
+                        this.name = (event.target as HTMLInputElement).value;
 
                         this.checkIfDisabled();
                     },

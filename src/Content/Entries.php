@@ -2,11 +2,9 @@
 
 namespace ClarkWinkelmann\CarvingContest\Content;
 
-use ClarkWinkelmann\CarvingContest\Controllers\EntryIndexController;
 use Flarum\Api\Client;
 use Flarum\Frontend\Document;
 use Flarum\Http\Exception\RouteNotFoundException;
-use Flarum\User\User;
 use Psr\Http\Message\ServerRequestInterface;
 
 class Entries
@@ -20,16 +18,14 @@ class Entries
 
     public function __invoke(Document $document, ServerRequestInterface $request)
     {
-        $apiDocument = $this->getApiDocument($request->getAttribute('actor'));
+        $apiDocument = $this->getApiDocument($request);
 
         $document->payload['apiDocument'] = $apiDocument;
-
-        return $document;
     }
 
-    protected function getApiDocument(User $actor)
+    protected function getApiDocument(ServerRequestInterface $request)
     {
-        $response = $this->api->send(EntryIndexController::class, $actor);
+        $response = $this->api->withParentRequest($request)->get('/carving-contest/entries');
 
         if ($response->getStatusCode() === 403) {
             throw new RouteNotFoundException();
