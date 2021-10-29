@@ -5,6 +5,7 @@ namespace ClarkWinkelmann\CarvingContest;
 use Carbon\Carbon;
 use Flarum\Database\AbstractModel;
 use Flarum\User\User;
+use Illuminate\Database\Eloquent\Relations;
 
 /**
  * @property int $id
@@ -27,12 +28,12 @@ class Entry extends AbstractModel
         'created_at' => 'datetime',
     ];
 
-    public function user()
+    public function user(): Relations\BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function likes()
+    public function likes(): Relations\BelongsToMany
     {
         return $this->belongsToMany(User::class, 'carving_contest_likes');
     }

@@ -14,7 +14,7 @@ class EntrySerializer extends AbstractSerializer
      * @param Entry $entry
      * @return array
      */
-    protected function getDefaultAttributes($entry)
+    protected function getDefaultAttributes($entry): array
     {
         return [
             'name' => $entry->name,
